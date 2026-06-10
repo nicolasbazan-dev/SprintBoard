@@ -1,12 +1,256 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SprintBoard</title>
-    <link rel="stylesheet" href="estilos.css">
+    <title>SprintBoard - Gestión de Proyectos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <h1>SprintBoard a full</h1>
+
+    <div id="toast-container"></div>
+
+    <div id="login-screen" class="screen">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">🚀 SprintBoard</div>
+                <p>Organiza tu trabajo, sprint a sprint</p>
+            </div>
+
+            <div id="login-panel">
+                <form id="login-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="login-username">Usuario</label>
+                        <input type="text" id="login-username" required placeholder="Tu nombre de usuario">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                            <button type="button" class="toggle-pw" data-target="login-password">👁️</button>
+                        </div>
+                    </div>
+                    <p id="login-error" class="auth-error hidden"></p>
+                    <button type="submit" class="btn-primary btn-block">Iniciar Sesión</button>
+                </form>
+                <p class="auth-switch">¿No tenés cuenta? <button id="toggle-to-register" class="link-btn">Crear una</button></p>
+            </div>
+
+            <div id="register-panel" class="hidden">
+                <form id="register-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="reg-username">Usuario</label>
+                        <input type="text" id="reg-username" required placeholder="Elegí un nombre de usuario">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="reg-password" required placeholder="Mínimo 4 caracteres">
+                            <button type="button" class="toggle-pw" data-target="reg-password">👁️</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-confirm">Confirmar Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="reg-confirm" required placeholder="Repetí la contraseña">
+                            <button type="button" class="toggle-pw" data-target="reg-confirm">👁️</button>
+                        </div>
+                    </div>
+                    <p id="register-error" class="auth-error hidden"></p>
+                    <button type="submit" class="btn-primary btn-block">Crear Cuenta</button>
+                </form>
+                <p class="auth-switch">¿Ya tenés cuenta? <button id="toggle-to-login" class="link-btn">Iniciar Sesión</button></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="project-selector-screen" class="screen hidden">
+        <div class="project-selector-container">
+            <h2>Mis Proyectos</h2>
+            <div id="projects-list" class="projects-grid"></div>
+            <div class="new-project-actions">
+                <input type="text" id="new-project-name" placeholder="Nombre del nuevo proyecto...">
+                <button id="btn-create-project" class="btn-primary">+ Crear Proyecto</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="app-layout hidden">
+        <aside class="sidebar">
+            <div class="sidebar-brand">🚀 SprintBoard</div>
+            <div class="profile-section">
+                <div class="profile-avatar-container">
+                    <img id="profile-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" alt="Avatar">
+                    <label for="avatar-upload" class="avatar-edit-badge" title="Cambiar foto">✏️</label>
+                    <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
+                </div>
+                <h3 id="profile-name">Usuario</h3>
+                <p id="profile-role" class="profile-role">Rol</p>
+                <p id="profile-desc" class="profile-desc">Descripción</p>
+                <button id="btn-edit-profile" class="btn-secondary btn-small">Editar Perfil</button>
+            </div>
+            <div class="metrics-section">
+                <h4>Métricas del Proyecto</h4>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-value" id="metric-total">0</span>
+                        <span class="metric-label">Totales</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value" id="metric-pending">0</span>
+                        <span class="metric-label">Pendientes</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-value" id="metric-completed">0</span>
+                        <span class="metric-label">Listas</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-text">
+                        <span>Avance</span>
+                        <span id="metric-progress-text">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="metric-progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="history-section">
+                <h4>Historial de Actividad</h4>
+                <div id="activity-log" class="activity-log"></div>
+            </div>
+            <button id="btn-logout" class="btn-danger btn-block">Cerrar Sesión</button>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button id="btn-back-projects" class="btn-secondary">📁 Cambiar Proyecto</button>
+                    <h1 id="current-project-title">Proyecto</h1>
+                </div>
+                <div class="controls-row">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Buscar por título o descripción...">
+                    </div>
+                    <div class="filter-box">
+                        <select id="filter-priority">
+                            <option value="all">Todas las prioridades</option>
+                            <option value="low">Baja</option>
+                            <option value="medium">Media</option>
+                            <option value="high">Alta</option>
+                            <option value="critical">Crítica</option>
+                        </select>
+                        <select id="filter-assignee">
+                            <option value="all">Todos los responsables</option>
+                        </select>
+                    </div>
+                    <button id="btn-open-task-modal" class="btn-primary">+ Nueva Tarea</button>
+                </div>
+            </header>
+
+            <section class="kanban-board">
+                <div class="kanban-column" data-status="pending">
+                    <div class="column-header"><h3>Pendiente</h3><span class="task-count" id="count-pending">0</span></div>
+                    <div class="column-body" id="col-pending"></div>
+                </div>
+                <div class="kanban-column" data-status="in-progress">
+                    <div class="column-header"><h3>En Progreso</h3><span class="task-count" id="count-in-progress">0</span></div>
+                    <div class="column-body" id="col-in-progress"></div>
+                </div>
+                <div class="kanban-column" data-status="testing">
+                    <div class="column-header"><h3>Testing</h3><span class="task-count" id="count-testing">0</span></div>
+                    <div class="column-body" id="col-testing"></div>
+                </div>
+                <div class="kanban-column" data-status="completed">
+                    <div class="column-header"><h3>Finalizado</h3><span class="task-count" id="count-completed">0</span></div>
+                    <div class="column-body" id="col-completed"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="task-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 id="modal-task-title">Nueva Tarea</h3>
+            <form id="task-form">
+                <input type="hidden" id="task-id">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="task-input-title" required placeholder="Ej: Implementar Login">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="task-input-desc" rows="3" required placeholder="Detalles de la tarea..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Responsable</label>
+                        <input type="text" id="task-input-assignee" required placeholder="Ej: Juan">
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridad</label>
+                        <select id="task-input-priority">
+                            <option value="low">🟢 Baja</option>
+                            <option value="medium" selected>🟡 Media</option>
+                            <option value="high">🟠 Alta</option>
+                            <option value="critical">🔴 Crítica</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Límite</label>
+                        <input type="date" id="task-input-deadline" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bloqueada por (Dependencia)</label>
+                        <select id="task-input-dependency"><option value="">Ninguna</option></select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="btn-close-task-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Tarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3>Editar Perfil</h3>
+            <form id="profile-form">
+                <div class="form-group">
+                    <label>Nombre (solo lectura)</label>
+                    <input type="text" id="edit-profile-name" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Rol / Puesto</label>
+                    <input type="text" id="edit-profile-role" required>
+                </div>
+                <div class="form-group">
+                    <label>Biografía corta</label>
+                    <textarea id="edit-profile-desc" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="btn-close-profile-modal" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        document.querySelectorAll('.toggle-pw').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.target);
+                input.type = input.type === 'password' ? 'text' : 'password';
+                btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+            });
+        });
+    </script>
 </body>
 </html>
